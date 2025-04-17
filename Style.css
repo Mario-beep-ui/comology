@@ -1,0 +1,273 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: black;
+    color: white;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+#start-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+#start-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+#start-button {
+    font-size: 1.5em;
+    padding: 15px 30px;
+    background: #222;
+    color: #0f0;
+    border: 2px solid #0f0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#start-button:hover {
+    background: #0f0;
+    color: black;
+    transform: scale(1.05);
+}
+
+@keyframes glowTitle {
+    0% { text-shadow: 0 0 10px #0f0; }
+    100% { text-shadow: 0 0 25px #0f0, 0 0 50px #0f0; }
+}
+
+
+#game-container {
+    width: 800px;
+    height: 600px;
+    border: 2px solid white;
+    position: relative;
+    transform-origin: top center;
+    image-rendering: pixelated;
+}
+
+#battle-screen {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    background-image: url('./escenarios/fondo_batallajpeg.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#text-box {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid white;
+    padding: 15px;
+    min-height: 100px;
+    font-size: 1.2rem;
+}
+
+.character {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    image-rendering: pixelated;
+    animation: float 2s ease-in-out infinite;
+    bottom: 200px;
+    background: transparent !important;
+    overflow: hidden;
+}
+
+.character img {
+    background: transparent !important;
+}
+
+#player-sprite {
+    left: 150px;
+}
+
+#enemy-sprite {
+    right: 150px;
+}
+
+.health-bar {
+    position: absolute;
+    width: 200px;
+    height: 20px;
+    border: 2px solid white;
+    background: #222;
+    top: 20px;
+}
+
+#enemy-health-container {
+    right: 20px;
+}
+
+#player-health-container {
+    left: 20px;
+}
+
+.health-fill {
+    height: 100%;
+    background-color: green;
+    transition: width 0.3s ease;
+}
+
+.battle-option {
+    margin: 5px;
+    padding: 8px 15px;
+    background-color: #333;
+    color: white;
+    border: 1px solid white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.battle-option:hover {
+    background-color: #444;
+    transform: scale(1.05);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal-content {
+    background: #000;
+    border: 3px solid #ff0000;
+    padding: 30px;
+    text-align: center;
+    animation: pulse 1.5s infinite;
+}
+
+.modal-button {
+    background: #d00;
+    color: white;
+    border: 2px solid #f00;
+    padding: 10px 25px;
+    font-size: 1.2em;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: transform 0.2s;
+}
+
+.modal-content.victory-style {
+    border-color: #00ff00;
+    animation: glow 1.5s infinite;
+}
+
+#flash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9998;
+    background: transparent;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.flash-white {
+    background: white;
+    opacity: 1;
+}
+
+.flash-red {
+    background: red;
+    opacity: 0.6;
+}
+
+@media (max-width: 800px) {
+    #game-container {
+        transform: scale(0.8);
+    }
+}
+
+@media (max-width: 600px) {
+    #game-container {
+        transform: scale(0.6);
+    }
+
+    #player-sprite {
+        left: 50px;
+    }
+
+    #enemy-sprite {
+        right: 50px;
+    }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes playerAttack {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(30%) scaleX(-1); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes enemyAttack {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(-30%); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes glow {
+    0% { box-shadow: 0 0 10px #0f0; }
+    50% { box-shadow: 0 0 25px #0f0; }
+    100% { box-shadow: 0 0 10px #0f0; }
+}
+
+/* Efecto de sacudida del fondo al recibir daño */
+@keyframes screenShake {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(5px, -5px); }
+    50% { transform: translate(-5px, 5px); }
+    75% { transform: translate(5px, 5px); }
+    100% { transform: translate(0, 0); }
+}
+
+.battle-shake {
+    animation: screenShake 0.3s;
+}
