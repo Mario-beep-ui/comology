@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Undertale-like Game con Personajes Personalizados</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="./Style.css" type="text/css" media="all" />
+</head>
+<body>
+    <div id="start-screen">
+        <div id="start-content">
+            <h1>⚔️ COMENZAR BATALLA ⚔️</h1>
+            <button id="start-button">Iniciar</button>
+        </div>
+    </div>
+    
+    <div id="game-container">
+        <div id="battle-screen" style="display: none;">
+            <div id="player-sprite" class="character">
+                <img src="./Personajes/Morfeo.png" alt="Jugador" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div id="enemy-sprite" class="character">
+                <img src="./Personajes/Anthelios.png" alt="Anthelios" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div class="health-bar" id="enemy-health-container">
+                <div id="enemy-health" class="health-fill"></div>
+            </div>
+            <div class="health-bar" id="player-health-container">
+                <div id="player-health" class="health-fill"></div>
+            </div>
+        </div>
+        <div id="text-box">
+            <div id="dialogue-text"></div>
+            <div id="options-container"></div>
+        </div>
+    </div>
+
+    <div id="game-over-modal" class="modal">
+        <div class="modal-content">
+            <h2>☠️ GAME OVER ☠️</h2>
+            <button id="restart-button" class="modal-button">Reintentar</button>
+        </div>
+    </div>
+
+    <div id="victory-modal" class="modal">
+        <div class="modal-content victory-style">
+            <h2>🎉 ¡VICTORIA! 🎉</h2>
+            <p>«Vaya, eres más fuerte de lo que esperaba. ¡Bien hecho!»</p>
+            <button id="victory-button" class="modal-button">Jugar de nuevo</button>
+        </div>
+    </div>
+    <div id="flash-overlay"></div>
+    <script src="./Script.js" type="text/javascript" charset="utf-8"></script>
+</body>
+</html>
