@@ -17,9 +17,10 @@ const gameState = {
 
 // 💬 Diálogos
 const dialogues = [
-    "Te encuentras en un oscuro bosque...",
-    "Una figura oscura emerge de las sombras!",
-    "¿Qué vas a hacer?"
+"te encuentras en bosque oescuro",
+"un enemigo aparece",
+"es un monstruo de sombras",
+"preporte a luchar",
 ];
 
 // 🔊 Sonidos
