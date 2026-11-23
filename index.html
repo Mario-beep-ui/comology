@@ -8,20 +8,18 @@
 <body>
     <div id="start-screen">
         <div id="start-content">
-            <h1>⚔️ COMENZAR BATALLA ⚔️</h1>
-            <h2>(es solo la prueba de un escenario de batalla)</h2>
+            <h1>COMOLOGY</h1>
+            <h2>Las afueras de Tyni City</h2>
             <button id="start-button">Iniciar</button>
         </div>
     </div>
     
     <div id="game-container">
+        <div id="world-screen" style="display: none;">
+            <canvas id="world-canvas" width="800" height="600"></canvas>
+        </div>
         <div id="battle-screen" style="display: none;">
-            <div id="player-sprite" class="character">
-                <img src="./personajes/Morfeo.png" alt="Jugador" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            <div id="enemy-sprite" class="character">
-                <img src="./personajes/Anthelios.png" alt="Anthelios" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
+            <canvas id="battle-canvas" width="800" height="600"></canvas>
             <div class="health-bar" id="enemy-health-container">
                 <div id="enemy-health" class="health-fill"></div>
             </div>
@@ -32,6 +30,29 @@
         <div id="text-box">
             <div id="dialogue-text"></div>
             <div id="options-container"></div>
+        </div>
+        <div id="ally-swap-modal" class="modal" style="display: none;">
+            <div class="modal-content ally-selector-content">
+                <h2 id="ally-selector-message">Elige a tu acompañante</h2>
+                <div id="ally-selector-container" class="ally-selector-grid"></div>
+                <button id="ally-selector-close" class="modal-button">Cerrar</button>
+            </div>
+        </div>
+        <div id="mobile-controls" class="hidden">
+            <div class="dpad">
+                <button id="btn-up" class="dpad-btn" aria-label="Arriba"></button>
+                <div class="dpad-row">
+                    <button id="btn-left" class="dpad-btn" aria-label="Izquierda"></button>
+                    <button id="btn-down" class="dpad-btn" aria-label="Abajo"></button>
+                    <button id="btn-right" class="dpad-btn" aria-label="Derecha"></button>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button id="btn-interact" class="action-btn" aria-label="Interactuar">E</button>
+                <button id="btn-jump" class="action-btn" aria-label="Saltar">B</button>
+                <button id="btn-attack" class="action-btn" aria-label="Atacar">A</button>
+            </div>
+            <button id="toggle-touch-btn" class="toggle-touch-btn">Ocultar Controles</button>
         </div>
     </div>
 
@@ -50,6 +71,6 @@
         </div>
     </div>
     <div id="flash-overlay"></div>
-    <script src="./Script.js" type="text/javascript" charset="utf-8"></script>
+    <script type="module" src="./js/main.js"></script>
 </body>
 </html>

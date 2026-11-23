@@ -59,18 +59,33 @@ body {
 
 
 #game-container {
-    width: 800px;
-    height: 600px;
-    border: 2px solid white;
+    width: 100vw;
+    height: 100vh;
+    border: none;
     position: relative;
-    transform-origin: top center;
+    overflow: hidden;
     image-rendering: pixelated;
+    background: #000;
 }
 
+#world-screen,
 #battle-screen {
     position: relative;
     height: 100%;
     width: 100%;
+}
+
+#world-canvas,
+#battle-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+}
+
+#battle-screen {
     background-image: url('./escenarios/fondo_batallajpeg.jpeg');
     background-size: cover;
     background-position: center;
@@ -220,16 +235,13 @@ h2 {
 }
 
 @media (max-width: 800px) {
-    #game-container {
-        transform: scale(0.8);
+    #world-canvas,
+    #battle-canvas {
+        image-rendering: pixelated;
     }
 }
 
 @media (max-width: 600px) {
-    #game-container {
-        transform: scale(0.6);
-    }
-
     #player-sprite {
         left: 50px;
     }
@@ -279,4 +291,411 @@ h2 {
 
 .battle-shake {
     animation: screenShake 0.3s;
+}
+
+#ally-swap-modal {
+    z-index: 10000;
+}
+
+.ally-selector-content {
+    background: rgba(0, 20, 40, 0.95);
+    border: 3px solid #00aaff;
+    border-radius: 4px;
+    padding: 24px;
+    min-width: 500px;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 0 20px rgba(0, 170, 255, 0.4), inset 0 0 20px rgba(0, 170, 255, 0.1);
+    animation: allyModalPulse 2s infinite;
+}
+
+@keyframes allyModalPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(0, 170, 255, 0.4), inset 0 0 20px rgba(0, 170, 255, 0.1); }
+    50% { box-shadow: 0 0 30px rgba(0, 170, 255, 0.6), inset 0 0 30px rgba(0, 170, 255, 0.2); }
+}
+
+.ally-selector-content h2 {
+    color: #00aaff;
+    text-shadow: 0 0 10px #00aaff;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+.ally-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.ally-card {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #333;
+    border-radius: 4px;
+    padding: 16px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.ally-card:hover {
+    border-color: #00aaff;
+    box-shadow: 0 0 15px rgba(0, 170, 255, 0.3);
+}
+
+.ally-card.active {
+    border-color: #00aaff;
+    background: rgba(0, 30, 60, 0.9);
+    box-shadow: 0 0 15px rgba(0, 170, 255, 0.4);
+}
+
+.ally-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.ally-name {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #00ffff;
+    text-shadow: 0 0 5px #00ffff;
+}
+
+.ally-active-badge {
+    background: #00aaff;
+    color: #000;
+    padding: 2px 8px;
+    font-size: 0.7em;
+    font-weight: bold;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.ally-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 12px;
+    padding: 8px 0;
+    border-top: 1px solid #333;
+    border-bottom: 1px solid #333;
+}
+
+.ally-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 0.75em;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #fff;
+}
+
+.ally-xp-bar {
+    height: 6px;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.ally-xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00aaff, #00ffff);
+    transition: width 0.3s ease;
+}
+
+.ally-xp-text {
+    font-size: 0.75em;
+    color: #888;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.ally-select-btn {
+    width: 100%;
+    padding: 10px;
+    background: #111;
+    color: #00aaff;
+    border: 2px solid #00aaff;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ally-select-btn:hover:not(:disabled) {
+    background: #00aaff;
+    color: #000;
+}
+
+.ally-select-btn:disabled {
+    background: #222;
+    color: #666;
+    border-color: #444;
+    cursor: default;
+}
+
+.ally-selector-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+}
+
+.ally-selector-empty p {
+    font-size: 1.1em;
+    line-height: 1.5;
+}
+
+#ally-selector-close {
+    background: #111;
+    color: #00aaff;
+    border: 2px solid #00aaff;
+    padding: 10px 30px;
+    font-family: 'Courier New', monospace;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+#ally-selector-close:hover {
+    background: #00aaff;
+    color: #000;
+}
+
+#mobile-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    pointer-events: none;
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+#mobile-controls.hidden {
+    display: none;
+}
+
+.dpad {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.dpad-row {
+    display: flex;
+    gap: 4px;
+}
+
+.dpad-btn {
+    width: 56px;
+    height: 56px;
+    background: rgba(20, 20, 20, 0.55);
+    border: 2px solid #fff;
+    border-radius: 8px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 1.2em;
+    transition: all 0.1s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.dpad-btn:active,
+.dpad-btn.pressed {
+    background: rgba(0, 170, 255, 0.4);
+    border-color: #00aaff;
+    box-shadow: 0 0 16px rgba(0, 170, 255, 0.6), inset 0 0 0 1px rgba(0, 170, 255, 0.3);
+    transform: scale(0.95);
+}
+
+.dpad-btn#btn-up {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 24px;
+}
+
+.dpad-btn#btn-down {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 24px;
+}
+
+.dpad-btn#btn-left {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M15.41 7.41L10.83 12l4.58 4.59L14 18l-6-6 6-6 1.41 1.41z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 24px;
+}
+
+.dpad-btn#btn-right {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 24px;
+}
+
+.action-buttons {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.action-btn {
+    width: 64px;
+    height: 64px;
+    background: rgba(20, 20, 20, 0.55);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 1.4em;
+    font-weight: bold;
+    text-shadow: 0 0 8px currentColor;
+    transition: all 0.1s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.action-btn#btn-attack {
+    color: #ff4444;
+    text-shadow: 0 0 8px #ff4444;
+    border-color: #ff4444;
+}
+
+.action-btn#btn-attack:active,
+.action-btn#btn-attack.pressed {
+    background: rgba(255, 68, 68, 0.4);
+    border-color: #ff8888;
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.7), inset 0 0 0 1px rgba(255, 68, 68, 0.4);
+    transform: scale(0.92);
+}
+
+.action-btn#btn-jump {
+    color: #44aaff;
+    text-shadow: 0 0 8px #44aaff;
+    border-color: #44aaff;
+}
+
+.action-btn#btn-jump:active,
+.action-btn#btn-jump.pressed {
+    background: rgba(68, 170, 255, 0.4);
+    border-color: #88ccff;
+    box-shadow: 0 0 20px rgba(68, 170, 255, 0.7), inset 0 0 0 1px rgba(68, 170, 255, 0.4);
+    transform: scale(0.92);
+}
+
+.action-btn#btn-interact {
+    color: #00ff88;
+    text-shadow: 0 0 8px #00ff88;
+    border-color: #00ff88;
+}
+
+.action-btn#btn-interact:active,
+.action-btn#btn-interact.pressed {
+    background: rgba(0, 255, 136, 0.4);
+    border-color: #44ffaa;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.7), inset 0 0 0 1px rgba(0, 255, 136, 0.4);
+    transform: scale(0.92);
+}
+
+.toggle-touch-btn {
+    pointer-events: auto;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 6px 12px;
+    background: rgba(20, 20, 20, 0.7);
+    border: 2px solid #00aaff;
+    border-radius: 4px;
+    color: #00aaff;
+    font-family: 'Courier New', monospace;
+    font-size: 0.7em;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    z-index: 100;
+    transition: all 0.2s ease;
+}
+
+.toggle-touch-btn:hover {
+    background: #00aaff;
+    color: #000;
+}
+
+@media (orientation: portrait) {
+    #mobile-controls::before {
+        content: 'Gira el dispositivo a horizontal para mejor experiencia';
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.85);
+        border: 2px solid #ffaa00;
+        color: #ffaa00;
+        padding: 20px 30px;
+        font-family: 'Courier New', monospace;
+        font-size: 1em;
+        text-align: center;
+        z-index: 9999;
+        pointer-events: none;
+        border-radius: 4px;
+        animation: portraitPulse 2s infinite;
+    }
+    
+    @keyframes portraitPulse {
+        0%, 100% { opacity: 0.9; }
+        50% { opacity: 1; }
+    }
+}
+
+@media (max-width: 600px) {
+    .dpad-btn {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .action-btn {
+        width: 56px;
+        height: 56px;
+        font-size: 1.2em;
+    }
 }
