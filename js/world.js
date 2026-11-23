@@ -17,10 +17,10 @@ const ALLY_FOLLOW_DISTANCE = 44;
 const ALLY_FOLLOW_SPEED = 2.6;
 
 const PLAYER_SPRITE_FILES = {
-  down: './personajes/morfeo_frente.png',
-  up: './personajes/morfeo_espalda.png',
-  left: './personajes/morfeo_perfil.png',
-  right: './personajes/morfeo_perfil.png'
+  front: './personajes/Morfeo.png',
+  back: './personajes/Morfeo_espaldas.png',
+  side: './personajes/Morfeo_perfil.png',
+  frontDiag: './personajes/Morfeo_frente_diagional.png'
 };
 const MORFEO_FALLBACK = './personajes/Morfeo.png';
 
@@ -38,6 +38,9 @@ const player = {
   fallbackSprite: null,
   moving: false,
   direction: 'down',
+  facing: 'front',
+  flipX: false,
+  walkTime: 0,
   frame: 0,
   frameTimer: 0
 };
@@ -54,9 +57,11 @@ const activeAlly = {
 
 const camera = { x: 0, y: 0 };
 
+const particles = [];
+
 let canvas = null;
 let ctx = null;
-let animationId = null;
+let animationFrameId = null;
 let lastTime = 0;
 
 let groundImg = null;
@@ -112,10 +117,10 @@ function loadAssets() {
 
 function loadSprites() {
   player.sprites = {};
-  ['down', 'up', 'left', 'right'].forEach(dir => {
+  Object.entries(PLAYER_SPRITE_FILES).forEach(([key, src]) => {
     const img = new Image();
-    img.src = PLAYER_SPRITE_FILES[dir];
-    player.sprites[dir] = img;
+    img.src = src;
+    player.sprites[key] = img;
   });
 
   player.fallbackSprite = new Image();
@@ -129,8 +134,8 @@ function loadSprites() {
 }
 
 function getPlayerSprite() {
-  const dir = player.direction || 'down';
-  const directional = player.sprites && player.sprites[dir];
+  const facing = player.facing || 'front';
+  const directional = player.sprites && player.sprites[facing];
   if (directional && directional.complete && directional.naturalWidth > 0) {
     return directional;
   }
@@ -239,9 +244,9 @@ function generateEnemies() {
   });
 }
 
-function updateEnemies(deltaTime) {
+function updateEnemies(dt) {
   enemies.forEach(enemy => {
-    enemy.patrolAngle += enemy.patrolSpeed * deltaTime * 0.001;
+    enemy.patrolAngle += enemy.patrolSpeed * dt;
     enemy.x = enemy.patrolCenterX + Math.cos(enemy.patrolAngle) * enemy.patrolRadius;
     enemy.y = enemy.patrolCenterY + Math.sin(enemy.patrolAngle) * enemy.patrolRadius;
   });
@@ -278,52 +283,60 @@ function collides(x, y, w, h) {
   return false;
 }
 
-function updatePlayer(deltaTime) {
+function updatePlayer(dt) {
   if (isPlayerMovementPaused()) return;
 
   let dx = 0;
   let dy = 0;
-  let moved = false;
 
-  if (inputState.up) {
-    dy = -1;
-    player.direction = 'up';
-    moved = true;
-  }
-  if (inputState.down) {
-    dy = 1;
-    player.direction = 'down';
-    moved = true;
-  }
-  if (inputState.left) {
-    dx = -1;
-    player.direction = 'left';
-    moved = true;
-  }
-  if (inputState.right) {
-    dx = 1;
-    player.direction = 'right';
-    moved = true;
-  }
+  if (inputState.up) dy = -1;
+  if (inputState.down) dy = 1;
+  if (inputState.left) dx = -1;
+  if (inputState.right) dx = 1;
 
-  if (moved) {
-    const len = Math.sqrt(dx * dx + dy * dy);
-    dx = (dx / len) * PLAYER_SPEED;
-    dy = (dy / len) * PLAYER_SPEED;
+  if (dx !== 0 || dy !== 0) {
+    const len = Math.hypot(dx, dy);
+    const nx = dx / len;
+    const ny = dy / len;
 
-    const newX = clamp(player.x + dx, 0, WORLD_WIDTH - player.width);
-    if (!collides(newX, player.y, player.width, player.height)) {
-      player.x = newX;
+    const moveX = nx * PLAYER_SPEED;
+    const moveY = ny * PLAYER_SPEED;
+
+    const prevX = player.x;
+    const prevY = player.y;
+
+    player.x = clamp(player.x + moveX, 0, WORLD_WIDTH - player.width);
+    if (collides(player.x, player.y, player.width, player.height)) {
+      player.x = prevX;
     }
 
-    const newY = clamp(player.y + dy, 0, WORLD_HEIGHT - player.height);
-    if (!collides(player.x, newY, player.width, player.height)) {
-      player.y = newY;
+    player.y = clamp(player.y + moveY, 0, WORLD_HEIGHT - player.height);
+    if (collides(player.x, player.y, player.width, player.height)) {
+      player.y = prevY;
     }
 
     player.moving = true;
-    player.frameTimer += deltaTime;
-    if (player.frameTimer > 150) {
+    player.walkTime += dt;
+    player.flipX = nx < 0;
+
+    if (ny > 0 && nx !== 0) {
+      player.facing = 'frontDiag';
+    } else if (ny > 0) {
+      player.facing = 'front';
+    } else if (ny < 0) {
+      player.facing = 'back';
+    } else {
+      player.facing = 'side';
+    }
+
+    if (Math.abs(ny) >= Math.abs(nx)) {
+      player.direction = ny > 0 ? 'down' : 'up';
+    } else {
+      player.direction = nx > 0 ? 'right' : 'left';
+    }
+
+    player.frameTimer += dt;
+    if (player.frameTimer > 0.15) {
       player.frame = (player.frame + 1) % 4;
       player.frameTimer = 0;
     }
@@ -333,7 +346,7 @@ function updatePlayer(deltaTime) {
   }
 }
 
-function updateAlly(deltaTime) {
+function updateAlly(dt) {
   if (!globalState.activeAlly) return;
 
   const targetX = player.x - Math.cos(getDirectionAngle(player.direction)) * ALLY_FOLLOW_DISTANCE;
@@ -348,8 +361,8 @@ function updateAlly(deltaTime) {
     const moveY = (dy / dist) * ALLY_FOLLOW_SPEED;
     activeAlly.x = clamp(activeAlly.x + moveX, 0, WORLD_WIDTH - activeAlly.width);
     activeAlly.y = clamp(activeAlly.y + moveY, 0, WORLD_HEIGHT - activeAlly.height);
-    activeAlly.frameTimer += deltaTime;
-    if (activeAlly.frameTimer > 200) {
+    activeAlly.frameTimer += dt;
+    if (activeAlly.frameTimer > 0.2) {
       activeAlly.frame = (activeAlly.frame + 1) % 4;
       activeAlly.frameTimer = 0;
     }
@@ -493,12 +506,76 @@ function drawActor(actor, drawW, drawH, img, flip) {
 
 function drawPlayer(p) {
   const img = getPlayerSprite();
-  const pos = drawActor(p, PLAYER_DRAW_W, PLAYER_DRAW_H, img, p.direction === 'left');
+  const walkTime = p.walkTime || 0;
+  const bounce = p.moving ? Math.abs(Math.sin(walkTime)) * 5 : 0;
+  const tilt = p.moving ? Math.sin(walkTime) * 0.08 : 0;
+
+  const targetHeight = 76;
+  const sprite = img;
+  const aspectRatio = (sprite && sprite.naturalWidth && sprite.naturalHeight) ? (sprite.naturalWidth / sprite.naturalHeight) : 0.7;
+  const drawWidth = targetHeight * aspectRatio;
+  const drawH = targetHeight;
+
+  const cx = p.x + p.width / 2;
+  const cy = p.y + p.height;
+
+  const dx = cx - drawWidth / 2;
+  const dy = cy - drawH - bounce;
+
+  const footX = cx;
+  const footY = cy;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.beginPath();
+  ctx.ellipse(footX, footY, 22, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(dx + drawWidth / 2, dy + drawH / 2);
+  ctx.rotate(tilt);
+
+  if (sprite) {
+    drawSpriteImage(-drawWidth / 2, -drawH / 2, drawWidth, drawH, sprite, p.flipX);
+  } else {
+    ctx.fillStyle = '#00ffff';
+    ctx.fillRect(-drawWidth / 2, -drawH / 2, drawWidth, drawH);
+  }
+
+  ctx.restore();
+
+  if (p.moving) {
+    particles.push({
+      x: footX + (p.flipX ? -8 : 8) + (Math.random() - 0.5) * 6,
+      y: footY + 2,
+      vx: (Math.random() - 0.5) * 1,
+      vy: -0.7 - Math.random() * 0.6,
+      life: 1,
+      size: 2 + Math.random() * 3
+    });
+    if (particles.length > 25) particles.shift();
+  }
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const d = particles[i];
+    d.x += d.vx;
+    d.y += d.vy;
+    d.life -= 0.06;
+    if (d.life <= 0) {
+      particles.splice(i, 1);
+      continue;
+    }
+    ctx.fillStyle = `rgba(150,130,100,${d.life})`;
+    ctx.beginPath();
+    ctx.arc(d.x, d.y, Math.max(0.1, d.size * d.life), 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   ctx.fillStyle = '#00ff00';
   ctx.font = '11px Courier New';
   ctx.textAlign = 'center';
-  ctx.fillText(globalState.player.name, p.x + p.width / 2, pos.y - 6);
+  ctx.fillText(globalState.player.name, cx, dy - 6);
 }
 
 function drawAlly(a) {
@@ -576,17 +653,17 @@ function render() {
 }
 
 function gameLoop(timestamp) {
-  const deltaTime = timestamp - lastTime;
+  const dt = (lastTime === 0 || isNaN(lastTime)) ? 0.016 : Math.min((timestamp - lastTime) / 1000, 0.05);
   lastTime = timestamp;
 
-  updatePlayer(deltaTime);
-  updateAlly(deltaTime);
-  updateEnemies(deltaTime);
+  updatePlayer(dt);
+  updateAlly(dt);
+  updateEnemies(dt);
   checkCollisions();
   updateCamera();
   render();
 
-  animationId = requestAnimationFrame(gameLoop);
+  animationFrameId = requestAnimationFrame(gameLoop);
 }
 
 export function initWorld() {
@@ -615,16 +692,16 @@ export function initWorld() {
   activeAlly.y = player.y;
   updateCamera();
 
-  if (animationId) cancelAnimationFrame(animationId);
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
   lastTime = performance.now();
-  animationId = requestAnimationFrame(gameLoop);
+  animationFrameId = requestAnimationFrame(gameLoop);
 
   console.log('World mode initialized');
 }
 
 export function destroyWorld() {
-  if (animationId) cancelAnimationFrame(animationId);
-  animationId = null;
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  animationFrameId = null;
 }
 
 export function refreshActiveAlly() {
